@@ -3,7 +3,7 @@ const { spawn } = require('child_process');
 const { students } = require('./students.json');
 
 const args = process.argv.slice(2);
-const githubPath = args[0];
+const repoName = args[0];
 // const folderPath = args[1]; # ToDo: implement clone path destination
 
 // If no repo specified in cli args, end
@@ -15,7 +15,7 @@ if(args.length === 0) {
 // options object
 const options = {
     hostname: 'api.github.com',
-    path: `/repos/WDI-SEA/${githubPath}/pulls`,
+    path: `/repos/WDI-SEA/${repoName}/pulls`,
     method: 'GET',
     headers: {
         'User-Agent': 'h64'
@@ -41,22 +41,25 @@ https.get(options, res => {
 
 // find which students made submissions, and return that list as array
 function getSubmittors(input) {
-    const submittors = [];
+    const submissions = [];
     const usernames = students.map(({ username }) => username);
     for(pullRequest of input) {
         let idx = usernames.indexOf(pullRequest.user.login);
+        let repoPath = pullRequest.head.repo.full_name;
         if(idx > -1) { // PR confirmed submitted - add the student to the 'submitted' list
-            submittors.push(students[idx]);
+            let submissionDetails = students[idx];
+            submissionDetails.repoPath = repoPath;
+            submissions.push(submissionDetails);
         }
     }
-    return submittors;
+    return submissions;
 }
 
 // from the list, clone repositories
-function cloneRepositories(submittors) {
-    var cliCommand = `mkdir -p ${githubPath}`; // start building the single, monolithic command
-    submittors.forEach(student => { // make dir of student's name, and clone into that directory
-        cliCommand += ` && mkdir ${githubPath}/${student.name} && git clone git@github.com:${student.username}/${githubPath}.git ${githubPath}/${student.name}`
+function cloneRepositories(submissions) {
+    var cliCommand = `mkdir -p ${repoName}`; // start building the single, monolithic command
+    submissions.forEach(submission => { // make dir of student's name, and clone into that directory
+        cliCommand += ` && mkdir ${repoName}/${submission.name} && git clone git@github.com:${submission.repoPath}.git ${repoName}/${submission.name}`
     })
 
     const childProcess = spawn(cliCommand, { shell: true });
@@ -68,18 +71,18 @@ function cloneRepositories(submittors) {
         console.error(data.toString().trim());
     })
     childProcess.on('exit', exitCode => {
-        console.log(generateMissingSubmissionsReport(submittors));
-        console.log(`Done. ${submittors.length} / ${students.length} repositories cloned.`)
+        console.log(generateMissingSubmissionsReport(submissions));
+        console.log(`Done. ${submissions.length} / ${students.length} repositories cloned.`)
         // console.log("Child exited with code: " + exitCode);
     })
 }
 
 // print out which students didn't submit pull request submission
-function generateMissingSubmissionsReport(submittors) {
-    if(submittors.length === students.length) {
+function generateMissingSubmissionsReport(submissions) {
+    if(submissions.length === students.length) {
         return "";
     } else {
-        let difference = students.filter(student => !submittors.includes(student));
+        let difference = students.filter(student => !submissions.includes(student));
         let names = "";
         difference.forEach(student => names += `${student.name} `);
         return `Missing submissions from: ${names}`;
