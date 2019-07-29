@@ -21,9 +21,7 @@ Node
 
 ### ToDo: 
 1. implement cloning to a destination path
-2. Fix crash when mangled or invalid arg passed in
-
 
 ### Bugs squashed:
 1. Fix crash when user's repo name is different from upstream repo name
-
+2. Fix crash on invalid args

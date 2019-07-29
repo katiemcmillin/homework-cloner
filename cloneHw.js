@@ -32,6 +32,10 @@ https.get(options, res => {
     })
     res.on('end', () => {
         body = JSON.parse(body);
+        if(body.message) {
+            console.error(`Error: Invalid repository name: ${repoName}`);
+            process.exit(1);
+        }
         cloneRepositories(getSubmittors(body));
     })
     res.on('error', err => {
