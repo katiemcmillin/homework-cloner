@@ -45,8 +45,8 @@ function getSubmittors(input) {
     const usernames = students.map(({ username }) => username);
     for(pullRequest of input) {
         let idx = usernames.indexOf(pullRequest.user.login);
-        let repoPath = pullRequest.head.repo.full_name;
         if(idx > -1) { // PR confirmed submitted - add the student to the 'submitted' list
+        let repoPath = pullRequest.head.repo.full_name;
             let submissionDetails = students[idx];
             submissionDetails.repoPath = repoPath;
             submissions.push(submissionDetails);
