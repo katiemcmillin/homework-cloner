@@ -1,5 +1,5 @@
 # HwCloner
-## Script to automate homework pull request cloning
+## Script to automate pull request cloning
 
 ### Example Usage:
 To clone your student's pull requests from github.com/WDI-SEA/css-positioning:
@@ -13,6 +13,8 @@ To clone your student's pull requests from github.com/WDI-SEA/css-positioning:
     { "name": "student-name", "username": "github-username" },
 ]}
 ```
+### Dependencies:
+Node
 
 ### ToDo: 
 1. implement clone path destination
