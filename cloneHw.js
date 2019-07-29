@@ -34,9 +34,9 @@ https.get(options, res => {
         body = JSON.parse(body);
         cloneRepositories(getSubmittors(body));
     })
-    res.on('error', (err => {
+    res.on('error', err => {
         console.error("Error:", err);
-    }))
+    })
 })
 
 // find which students made submissions, and return that list as array
@@ -46,9 +46,8 @@ function getSubmittors(input) {
     for(pullRequest of input) {
         let idx = usernames.indexOf(pullRequest.user.login);
         if(idx > -1) { // PR confirmed submitted - add the student to the 'submitted' list
-        let repoPath = pullRequest.head.repo.full_name;
             let submissionDetails = students[idx];
-            submissionDetails.repoPath = repoPath;
+            submissionDetails.repoPath = pullRequest.head.repo.full_name;;
             submissions.push(submissionDetails);
         }
     }
