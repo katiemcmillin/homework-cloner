@@ -16,3 +16,6 @@ To clone your student's pull requests from github.com/WDI-SEA/css-positioning:
 
 ### ToDo: 
 1. implement clone path destination
+
+### Command Line Output: 
+![cli](https://i.imgur.com/xO6kaDr.png)
