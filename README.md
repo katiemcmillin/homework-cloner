@@ -19,9 +19,7 @@ To clone your student's pull requests from github.com/WDI-SEA/css-positioning:
 ### Dependencies:
 Node
 
-### ToDo: 
-1. implement cloning to a destination path
-
 ### Bugs squashed:
 1. Fix crash when user's repo name is different from upstream repo name
 2. Fix crash on invalid args
+3. Fix script ending early on re-clone 
