@@ -23,3 +23,4 @@ Node
 1. Fix crash when user's repo name is different from upstream repo name
 2. Fix crash on invalid args
 3. Fix script ending early on re-clone 
+4. Fix multiple folders being made for names w/ spaces
