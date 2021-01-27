@@ -13,7 +13,7 @@ if (process.argv.length === 0) {
 // options object
 const options = {
     hostname: "api.github.com",
-    path: `/repos/WDI-SEA/${repoName}/pulls`,
+    path: `/repos/SEI-SEA-1-25/${repoName}/pulls`,
     method: "GET",
     headers: {
         "User-Agent": "h64"
@@ -64,7 +64,7 @@ function cloneRepositories(submissions) {
         cliCommand +=
             // if folder not present - mkdir and clone, else echo message
             `[ ! -d "${submission.name}" ] && 
-                mkdir ${submission.name} && git clone git@github.com:${
+                mkdir "${submission.name}" && git clone git@github.com:${
                 submission.repoPath
             }.git ${submission.name} ||
                 echo "${submission.name}: directory already on drive";`;
