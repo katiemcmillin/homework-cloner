@@ -14,6 +14,7 @@ if (process.argv.length === 0) {
 async function main() {
     let pullRequests = await Promise.all(orgs.map(org => xhr(org)))
     pullRequests = [].concat.apply([], pullRequests); // Flatten array of arrays
+    pullRequests = pullRequests.filter(pr => pr.message != 'Not Found') // Strip empty PR, in the case of no PR from 2nd org
 
     let studentSubmissions = [];
     studentSubmissions = getStudentsPullRequests(pullRequests);
@@ -62,6 +63,7 @@ function getStudentsPullRequests(pullRequests) {
         // If this student already submitted HW in multiple orgs - don't include dupe submission from other org
         // This also implicitly makes a preference on one PR over another in the case of dupes
         // The chance of this actually coming up and being a problem is very small - just clone it manually at that point
+
         let username = pullRequest.user.login;
         if (submissions.indexOf(username) > -1) { continue } ; 
         // disallow PR from branches
