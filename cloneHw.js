@@ -2,7 +2,7 @@ const https = require("https");
 const { spawn } = require("child_process");
 const { students } = require("./students.json");
 
-const orgs = ['SEI-SEA-1-25', 'WDI-SEA'] // Adjust Github orgs list here
+const orgs = ['WDI-SEA'] // Adjust Github orgs list here
 const repoName = process.argv[2];
 
 // If no repo specified in cli args, end program
@@ -29,7 +29,7 @@ async function xhr(org) {
         path: `/repos/${org}/${repoName}/pulls`,
         method: "GET",
         headers: {
-            "User-Agent": "h64"
+            "User-Agent": "weston-bailey"
         }
     };
     return new Promise((resolve, reject) => {
@@ -66,8 +66,8 @@ function getStudentsPullRequests(pullRequests) {
 
         let username = pullRequest.user.login;
         if (submissions.indexOf(username) > -1) { continue } ; 
-        // disallow PR from branches
-        if (pullRequest.head.ref !== 'main' && pullRequest.head.ref !== 'master' ) { continue } ; 
+        // disallow PR from branches -- uncomment to skip all except specific branch names
+        // if (pullRequest.head.ref !== 'main' && pullRequest.head.ref !== 'master' ) { continue } ; 
         
         let idx = usernames.indexOf(pullRequest.user.login);
         if (idx > -1) {
