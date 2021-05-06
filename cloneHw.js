@@ -119,7 +119,6 @@ async function cloneRepositories(submissions) {
     });
 }
 
-
 // print out which students didn't submit pull request submission
 function logMissingSubmissions(submissions) {
     if (submissions.length !== students.length) {
