@@ -2,7 +2,7 @@ const https = require("https");
 const { spawn } = require("child_process");
 const { students } = require("./students.json");
 
-const orgs = ['SEI-SEA-1-25', 'WDI-SEA'] // Adjust Github orgs list here
+const orgs = ['SEIR-7-06', 'WDI-SEA'] // Adjust Github orgs list here
 const repoName = process.argv[2];
 
 // If no repo specified in cli args, end program
