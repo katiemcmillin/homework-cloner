@@ -6,7 +6,7 @@ const orgs = ['SEIR-7-06', 'WDI-SEA'] // Adjust Github orgs list here
 const repoName = process.argv[2];
 
 // If no repo specified in cli args, end program
-if (process.argv.length === 0) {
+if (!repoName) {
     console.log("No repository name supplied in arguments! Exiting...");
     process.exit();
 }
