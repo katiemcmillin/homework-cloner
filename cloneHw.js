@@ -1,4 +1,3 @@
-require('dotenv').config()
 const https = require("https");
 const { spawn } = require("child_process");
 const { students } = require("./students.json");
@@ -8,7 +7,7 @@ const orgs = ['EC-SEI-JULY6'] // Adjust Github orgs list here
 const repoName = process.argv[2];
 
 // If no repo specified in cli args, end program
-if (process.argv.length === 0) {
+if (!repoName) {
     console.log("No repository name supplied in arguments! Exiting...");
     process.exit();
 }
