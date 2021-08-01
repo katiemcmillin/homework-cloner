@@ -1,8 +1,10 @@
+require('dotenv').config()
 const https = require("https");
 const { spawn } = require("child_process");
 const { students } = require("./students.json");
+const githubToken = process.env.GITHUB_TOKEN
 
-const orgs = ['WDI-SEA'] // Adjust Github orgs list here
+const orgs = ['EC-SEI-JULY6'] // Adjust Github orgs list here
 const repoName = process.argv[2];
 
 // If no repo specified in cli args, end program
@@ -25,11 +27,14 @@ async function main() {
 // make xhr request
 async function xhr(org) {
     const options = {
-        hostname: "api.github.com",
-        path: `/repos/${org}/${repoName}/pulls`,
+        // hostname: "api.github.com",]
+        /* updated for github enterprise */
+        hostname: "git.generalassemb.ly",
+        path: `/api/v3/repos/${org}/${repoName}/pulls`,
         method: "GET",
         headers: {
-            "User-Agent": "weston-bailey"
+            "User-Agent": "weston-bailey",
+            "Authorization": `token ${githubToken}`
         }
     };
     return new Promise((resolve, reject) => {

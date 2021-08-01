@@ -9,6 +9,8 @@ To clone your student's pull requests from github.com/WDI-SEA/css-positioning:
 ### Command Line Output: 
 ![cli](https://i.imgur.com/iWJS5RI.png)
 
+### For the gh-enterprise branch:
+
 ### students.json:
 `students.json` example:
 ```
