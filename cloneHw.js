@@ -107,7 +107,7 @@ async function cloneRepositories(submissions) {
   // $1: studentName, $2: repoPath, $3: orgName
   let bashFunction = 
   `hw() { 
-    if [ ! -d "$1" ]   then
+    if [ ! -d "$1" ] ; then
       mkdir "$1" 
       git clone -q git@github.com:$2.git $1 
       echo "Cloning into '${repoName}/$1' from $3"
