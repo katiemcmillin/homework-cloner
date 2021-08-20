@@ -8,6 +8,15 @@ const {
   orgs 
 } = require("./config.json") 
 
+// match 
+
+
+const flags = process.argv.filter(argv => {
+  argv.match(/(?<!\w)-\w+/)
+}) 
+
+console.log(flags)
+
 const repoName = process.argv[2] 
 
 // If no repo specified in cli args, end program
@@ -29,15 +38,19 @@ async function main() {
 
 // make xhr request
 async function xhr(org) {
+  // the enterprise api url is different grrr....
+  const apiUrl = hostname === "git.generalassemb.ly" ? "/api/v3/repos" : "/repos"
   const options = {
     hostname, // "git.generalassemb.ly" || "api.github.com"
-    path: `/api/v3/repos/${org}/${repoName}/pulls`,
+    path: `${apiUrl}/${org}/${repoName}/pulls`,
     method: "GET",
     headers: {
       "User-Agent": userName,
       "Authorization": `token ${githubToken}`
     }
   }
+
+  console.log(options)
 
   return new Promise((resolve, reject) => {
     https.get(options, res => {
@@ -50,7 +63,8 @@ async function xhr(org) {
       res.on("end", () => {
         body = JSON.parse(body) 
         if (body.message) {
-          console.error(`Warning: No repository found for: ${org}/${repoName}`) 
+          console.log(body)
+          console.error(`Warning: No repository found for: ${org}/${repoName}`)
         }
         resolve(body) 
       }) 
