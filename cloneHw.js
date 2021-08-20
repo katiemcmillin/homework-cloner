@@ -10,9 +10,8 @@ const {
 
 // match 
 
-
 const flags = process.argv.filter(argv => {
-  argv.match(/(?<!\w)-\w+/)
+  argv.match(/(?<!\w)--\w+/)
 }) 
 
 console.log(flags)
@@ -50,8 +49,6 @@ async function xhr(org) {
     }
   }
 
-  console.log(options)
-
   return new Promise((resolve, reject) => {
     https.get(options, res => {
       res.setEncoding("utf8") 
@@ -63,7 +60,6 @@ async function xhr(org) {
       res.on("end", () => {
         body = JSON.parse(body) 
         if (body.message) {
-          console.log(body)
           console.error(`Warning: No repository found for: ${org}/${repoName}`)
         }
         resolve(body) 
@@ -107,14 +103,30 @@ async function cloneRepositories(submissions) {
   // $1: studentName, $2: repoPath, $3: orgName
   let bashFunction = 
   `hw() { 
-    if [ ! -d "$1" ] ; then
-      mkdir "$1" 
-      git clone -q git@github.com:$2.git $1 
-      echo "Cloning into '${repoName}/$1' from $3"
-    else
-      echo "$1: directory already on drive"
+    # check if folder exists
+    if [ -d "$1" ] ; then
+      echo "$1: directory already on drive, deleting..."
+      rm -rf "$1" 
     fi
+
+    # clone down repo
+    mkdir "$1" 
+    echo "Cloning into '${repoName}/$1' from $3"
+    git clone -q git@github.com:$2.git $1 
   }`
+
+  // OG bash function that doesn't reclone when a folder is found
+  // let bashFunction = 
+  // `hw() { 
+  //   if [ ! -d "$1" ] ;  then
+  //     mkdir "$1" 
+  //     git clone -q git@github.com:$2.git $1 
+  //     echo "Cloning into '${repoName}/$1' from $3"
+  //   else
+  //     echo "$1: directory already on drive"
+  //   fi
+  // }`
+  
 
   // mkdir if doesn't exist and cd
   var cliCommand = `${bashFunction} && mkdir -p ${repoName} && cd ${repoName}`  

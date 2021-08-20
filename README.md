@@ -29,7 +29,7 @@ To clone your student's pull requests from github.com/WDI-SEA/css-positioning:
 }
 ```
 
-Use hostname `"hostname": "api.github.com"` www.github.com and `"hostname": "git.generalassemb.ly"` for github enterprise.
+Use hostname `"hostname": "api.github.com"` for www.github.com and `"hostname": "git.generalassemb.ly"` for github enterprise.
 
 The github token must be generated on your account by going to `settings > developer settings > personal access tokens`. Generate a new token with all scopes. 
 
