@@ -15,14 +15,13 @@ const {
   orgs 
 } = require("./config.json") 
 
-// color escape codes
-const colors = {
-  reset: "\033[0m",
-  fgRed: "\033[31m",
-  fgYellow: "\033[33m",
-  fgGreen: "\033[32m",
-  fgBlue: "\033[34m"
-}
+// functions for console colors
+const {
+  error,
+  warn,
+  info,
+  success
+} = require('./colors.js')
 
 // the repo name should be the first arg to the script
 const repoName = process.argv[2] 
@@ -32,14 +31,14 @@ const flags = process.argv.filter(argv => argv.match(/(?<!\w)--\w+/))
 
 // If no repo specified in cli args, end program
 if (!repoName) {
-  console.log(`No arguments to evaluate!\n${colors.fgRed}Exiting...${colors.reset}`) 
+  console.log(`${error('No arguments to evaluate!')}\nExiting...`) 
   process.exit() 
 }
 
 function main() {
   // check if the missign-assingments.json exists, if not, create it
   if(!existsSync('./missing-assingments.json')) {
-    console.log('./missing-assignments.json not found, creating it now...')
+    console.log(warn('./missing-assignments.json not found, creating it now...'))
     createMissingJson()
   }
 
@@ -47,6 +46,8 @@ function main() {
   if(flags.includes('--check')) return checkSubmissions()
   if(flags.includes('--forget')) return forgetRepo()
   if(flags.includes('--list')) return listAssignments()
+  if(flags.includes('--sync')) return syncStudents()
+  if(flags.includes('--updateAll')) return updateAllRepos()
 
   return cloneHw()
 }
@@ -159,7 +160,6 @@ async function cloneRepositories(submissions) {
     }`
   }
   
-
   // mkdir if doesn't exist and cd
   var cliCommand = `${bashFunction} && mkdir -p ${repoName} && cd ${repoName}`  
   submissions.forEach(submission => {
@@ -208,13 +208,25 @@ function createMissingJson() {
   writeFileSync('./missing-assingments.json', missingJson)
 }
 
-// checks submissions in missing-assignments.json
+/**
+ * Flag Functions: 
+ * these are invoked instead of cloneHw if the corresponding flag in present 
+ * in the cli args
+ */
+
+// --check: checks submissions in missing-assignments.json
 function checkSubmissions() { console.log('check student submissions') }
 
-// removes the supplied repo from the list of assignments
+// --forget: removes the supplied repo from the list of assignments
 function forgetRepo() { console.log(`remove repo: ${repoName}`) }
 
-// print out all tracked assignments
+// --list: print out all tracked assignments
 function listAssignments() { console.log('list all assignments') }
+
+// --sync: looks at the config.json and adds any new students to the missing assignments json
+function syncStudents() { console.log('sync students in config json to missing assignments') }
+
+// --updateAll: update all repos found in the missed assigments json
+function updateAllRepos() { console.log('sync students in config json to missing assignments') }
 
 main()
