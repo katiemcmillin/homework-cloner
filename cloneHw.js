@@ -15,6 +15,18 @@ const {
   orgs 
 } = require("./config.json") 
 
+const colors = {
+  reset: "\033[0m",
+  fgRed: "\033[31m",
+  fgYellow: "\033[33m",
+  fgGreen: "\033[32m",
+  fgBlue: "\033[34m"
+}
+
+// for(color in colors) {
+//   console.log(`just testing ${colors[color]}${color}${colors.reset} is all`)
+// }
+
 // the repo name should be the first arg to the script
 const repoName = process.argv[2] 
 
@@ -25,7 +37,7 @@ const flags = process.argv.filter(argv => {
 
 // If no repo specified in cli args, end program
 if (!repoName) {
-  console.log("No arguments to evaluate! Exiting...") 
+  console.log(`${colors.fgRed}No arguments to evaluate! Exiting... ${colors.reset}`) 
   process.exit() 
 }
 
