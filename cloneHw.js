@@ -1,5 +1,12 @@
 const https = require("https") 
 const { spawn } = require("child_process") 
+
+const { 
+  existsSync, 
+  readFileSync, 
+  writeFileSync 
+} = require('fs')
+
 const { 
   students, 
   githubToken,
@@ -8,23 +15,36 @@ const {
   orgs 
 } = require("./config.json") 
 
-// match 
-
-const flags = process.argv.filter(argv => {
-  argv.match(/(?<!\w)--\w+/)
-}) 
-
-console.log(flags)
-
+// the repo name should be the first arg to the script
 const repoName = process.argv[2] 
+
+// match command flags that start with --
+const flags = process.argv.filter(argv => {
+  return argv.match(/(?<!\w)--\w+/)
+}) 
 
 // If no repo specified in cli args, end program
 if (!repoName) {
-  console.log("No repository name supplied in arguments! Exiting...") 
+  console.log("No arguments to evaluate! Exiting...") 
   process.exit() 
 }
 
-async function main() {
+function main() {
+  // check if the missign-assingments.json exists, if not, create it
+  if(!existsSync('./missing-assingments.json')) {
+    console.log('./missing-assignments.json not found, creating it now...')
+    createMissingJson()
+  }
+
+  // forego cloning if only a check is requested
+  if(flags.includes('--check')) return checkSubmissions()
+  // forego cloning if a repo is being forgotten
+  if(flags.includes('--forget')) return forgetRepo()
+
+  return cloneHw()
+}
+
+async function cloneHw() {
   let pullRequests = await Promise.all(orgs.map(org => xhr(org)))
   pullRequests = [].concat.apply([], pullRequests)  // Flatten array of arrays
   pullRequests = pullRequests.filter(pr => pr.message != 'Not Found') // Strip empty PR, in the case of no PR from 2nd org
@@ -101,31 +121,36 @@ function getStudentsPullRequests(pullRequests) {
 async function cloneRepositories(submissions) {
   // BASH scripting magic: If folder not present - mkdir and clone, else echo message
   // $1: studentName, $2: repoPath, $3: orgName
+  // OG bash function that doesn't reclone when a folder is found
   let bashFunction = 
   `hw() { 
-    # check if folder exists
-    if [ -d "$1" ] ; then
-      echo "$1: directory already on drive, deleting..."
-      rm -rf "$1" 
+    if [ ! -d "$1" ] ;  then
+      mkdir "$1" 
+      git clone -q git@github.com:$2.git $1 
+      echo "Cloning into '${repoName}/$1' from $3"
+    else
+      echo "$1: directory already on drive"
     fi
-
-    # clone down repo
-    mkdir "$1" 
-    echo "Cloning into '${repoName}/$1' from $3"
-    git clone -q git@github.com:$2.git $1 
   }`
 
-  // OG bash function that doesn't reclone when a folder is found
-  // let bashFunction = 
-  // `hw() { 
-  //   if [ ! -d "$1" ] ;  then
-  //     mkdir "$1" 
-  //     git clone -q git@github.com:$2.git $1 
-  //     echo "Cloning into '${repoName}/$1' from $3"
-  //   else
-  //     echo "$1: directory already on drive"
-  //   fi
-  // }`
+  // deleted found repos if the --overWrite flag is used
+  if(flags.includes('--overWrite')) {
+    console.log('overwriting existing cloned repos...')
+
+    bashFunction = 
+    `hw() { 
+      # check if folder exists
+      if [ -d "$1" ] ; then
+        echo "$1: directory already on drive, deleting..."
+        rm -rf "$1" 
+      fi
+  
+      # clone down repo
+      mkdir "$1" 
+      echo "Cloning into '${repoName}/$1' from $3"
+      git clone -q git@github.com:$2.git $1 
+    }`
+  }
   
 
   // mkdir if doesn't exist and cd
@@ -162,9 +187,23 @@ function logMissingSubmissions(submissions) {
     difference.forEach(student => (names += `${student.name} `)) 
     console.log(`Missing submissions from: ${names}`) 
 
-    
     console.log(difference)
   }
 }
 
-main() 
+// creates the json that tracks turned in deliverbles
+function createMissingJson() {
+  const missingObj = {
+    assignments: [],
+    students: students
+  }
+  const missingJson = JSON.stringify(missingObj)
+  writeFileSync('./missing-assingments.json', missingJson)
+}
+
+// checks submissions in missing-assignments.json
+function checkSubmissions() { console.log('check student submissions') }
+
+function forgetRepo() { console.log(`remove repo: ${repoName}`) }
+
+main()
