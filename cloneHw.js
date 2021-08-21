@@ -15,6 +15,7 @@ const {
   orgs 
 } = require("./config.json") 
 
+// color escape codes
 const colors = {
   reset: "\033[0m",
   fgRed: "\033[31m",
@@ -37,7 +38,7 @@ const flags = process.argv.filter(argv => {
 
 // If no repo specified in cli args, end program
 if (!repoName) {
-  console.log(`${colors.fgRed}No arguments to evaluate! Exiting... ${colors.reset}`) 
+  console.log(`No arguments to evaluate!\n${colors.fgRed}Exiting...${colors.reset}`) 
   process.exit() 
 }
 
