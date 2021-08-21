@@ -24,17 +24,11 @@ const colors = {
   fgBlue: "\033[34m"
 }
 
-// for(color in colors) {
-//   console.log(`just testing ${colors[color]}${color}${colors.reset} is all`)
-// }
-
 // the repo name should be the first arg to the script
 const repoName = process.argv[2] 
 
 // match command flags that start with --
-const flags = process.argv.filter(argv => {
-  return argv.match(/(?<!\w)--\w+/)
-}) 
+const flags = process.argv.filter(argv => argv.match(/(?<!\w)--\w+/)) 
 
 // If no repo specified in cli args, end program
 if (!repoName) {
@@ -49,10 +43,10 @@ function main() {
     createMissingJson()
   }
 
-  // forego cloning if only a check is requested
+  // forego cloning if one of the following flags is found
   if(flags.includes('--check')) return checkSubmissions()
-  // forego cloning if a repo is being forgotten
   if(flags.includes('--forget')) return forgetRepo()
+  if(flags.includes('--list')) return listAssignments()
 
   return cloneHw()
 }
@@ -217,6 +211,10 @@ function createMissingJson() {
 // checks submissions in missing-assignments.json
 function checkSubmissions() { console.log('check student submissions') }
 
+// removes the supplied repo from the list of assignments
 function forgetRepo() { console.log(`remove repo: ${repoName}`) }
+
+// print out all tracked assignments
+function listAssignments() { console.log('list all assignments') }
 
 main()

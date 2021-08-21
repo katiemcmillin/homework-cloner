@@ -46,7 +46,6 @@ Node
 3. Fix script ending early on re-clone 
 4. Fix multiple folders being made for names w/ spaces
 
-
 ### Feature Additions:
 
 1. Tool now can pull from multiple Github organizations simultaneously
