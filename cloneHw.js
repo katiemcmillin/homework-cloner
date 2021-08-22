@@ -37,9 +37,9 @@ if (!repoName) {
 
 function main() {
   // check if the missign-assingments.json exists, if not, create it
-  if(!existsSync('./missing-assingments.json')) {
-    console.log(warn('./missing-assignments.json not found, creating it now...'))
-    createMissingJson()
+  if(!existsSync('./finished-assingments.json')) {
+    console.log(warn('./finished-assignments.json not found, creating it now...'))
+    createFinishedJson()
   }
 
   // forego cloning if one of the following flags is found
@@ -61,6 +61,8 @@ async function cloneHw() {
   studentSubmissions = getStudentsPullRequests(pullRequests) 
   await cloneRepositories(studentSubmissions)
   logMissingSubmissions(studentSubmissions) 
+  addNewAssigment()
+  updateFinishedAssignments(studentSubmissions)
 }
 
 // make xhr request
@@ -88,12 +90,12 @@ async function xhr(org) {
       res.on("end", () => {
         body = JSON.parse(body) 
         if (body.message) {
-          console.error(`Warning: No repository found for: ${org}/${repoName}`)
+          console.error(error(`Warning: No repository found for: ${org}/${repoName}`))
         }
         resolve(body) 
       }) 
       res.on("error", err => {
-        reject(new Error('Failed XHR, status code: ', res.statusCode))
+        reject(new Error(error('Failed XHR, status code: '), res.statusCode))
       }) 
     }) 
   })
@@ -130,26 +132,28 @@ async function cloneRepositories(submissions) {
   // BASH scripting magic: If folder not present - mkdir and clone, else echo message
   // $1: studentName, $2: repoPath, $3: orgName
   // OG bash function that doesn't reclone when a folder is found
+  let msg = warn('directory already on drive')
   let bashFunction = 
   `hw() { 
     if [ ! -d "$1" ] ;  then
       mkdir "$1" 
-      git clone -q git@github.com:$2.git $1 
       echo "Cloning into '${repoName}/$1' from $3"
+      git clone -q git@github.com:$2.git $1 
     else
-      echo "$1: directory already on drive"
+      echo "$1: ${msg}"
     fi
   }`
 
   // deleted found repos if the --overWrite flag is used
   if(flags.includes('--overWrite')) {
-    console.log('overwriting existing cloned repos...')
+    msg = warn('directory already on drive, deleting...')
+    console.log(warn('overwriting existing cloned repos...'))
 
     bashFunction = 
     `hw() { 
       # check if folder exists
       if [ -d "$1" ] ; then
-        echo "$1: directory already on drive, deleting..."
+        echo "$1: ${msg}"
         rm -rf "$1" 
       fi
   
@@ -189,23 +193,42 @@ function logMissingSubmissions(submissions) {
   if (submissions.length !== students.length) {
     let githubUsernames = submissions.map(submission => submission.user.login) //array of github usernames that made submission
     let difference = students.filter(student => !githubUsernames.includes(student.username))  //array of students that didnt make submission
-
+    
     let names = "" 
     difference.forEach(student => (names += `${student.name} `)) 
-    console.log(`Missing submissions from: ${names}`) 
-
-    console.log(difference)
+    console.log(error(`Missing submissions from: ${names}`)) 
   }
 }
 
-// creates the json that tracks turned in deliverbles
-function createMissingJson() {
-  const missingObj = {
-    assignments: [],
-    students: students
+// adds new assignment to the finished assignments json (does not add if it is not new)
+function addNewAssigment() {
+  const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+  if(!finishedJson.assignments.includes(repoName)) {
+    finishedJson.assignments.push(repoName)
+    writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
   }
-  const missingJson = JSON.stringify(missingObj)
-  writeFileSync('./missing-assingments.json', missingJson)
+}
+
+// adds assignment and student submissions to json
+function updateFinishedAssignments(submissions) {
+  const githubUsernames = submissions.map(submission => submission.user.login) //array of github usernames that made submission
+  const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+  finishedJson.students.forEach(student => {
+    if(githubUsernames.includes(student.username)) student.completed.push(repoName)
+  })
+  writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
+}
+
+// creates the json that tracks turned in deliverbles
+function createFinishedJson() {
+  const finishedObj = {
+    assignments: [],
+    students: students.map(student => {
+      return { ...student, completed: [] }
+    })
+  }
+  const finishedJson = JSON.stringify(finishedObj)
+  writeFileSync('./finished-assingments.json', finishedJson)
 }
 
 /**
@@ -214,7 +237,7 @@ function createMissingJson() {
  * in the cli args
  */
 
-// --check: checks submissions in missing-assignments.json
+// --check: checks submissions in finished-assignments.json
 function checkSubmissions() { console.log('check student submissions') }
 
 // --forget: removes the supplied repo from the list of assignments
@@ -223,10 +246,10 @@ function forgetRepo() { console.log(`remove repo: ${repoName}`) }
 // --list: print out all tracked assignments
 function listAssignments() { console.log('list all assignments') }
 
-// --sync: looks at the config.json and adds any new students to the missing assignments json
-function syncStudents() { console.log('sync students in config json to missing assignments') }
+// --sync: looks at the config.json and adds any new students to the finished assignments json
+function syncStudents() { console.log('sync students in config json to finished assignments') }
 
 // --updateAll: update all repos found in the missed assigments json
-function updateAllRepos() { console.log('sync students in config json to missing assignments') }
+function updateAllRepos() { console.log('sync students in config json to finished assignments') }
 
 main()
