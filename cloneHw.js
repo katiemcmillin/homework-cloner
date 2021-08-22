@@ -238,7 +238,37 @@ function createFinishedJson() {
  */
 
 // --check: checks submissions in finished-assignments.json
-function checkSubmissions() { console.log('check student submissions') }
+function checkSubmissions() { 
+  const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+  finishedJson.students.forEach(student => {
+    const missing = []
+    let missingString = ''
+    finishedJson.assignments.forEach(assignment => {
+      if(!student.completed.includes(assignment)) {
+        missing.push(assignment)
+        missingString += `${assignment} `
+      }
+    })
+    // calculate missing percentage
+    // print student name and missing assigments
+    const percent = (finishedJson.assignments.length - missing.length) * 100 / finishedJson.assignments.length
+    const color = percent <= 79 ? error : 
+                  percent <= 85 ? warn  :
+                  success 
+    const msg = `${student.name}\n${missing.length} missed assignments:\n${missingString}\ncompletion rate: ${percent}%`
+    if(flags.includes('--noGreen')) {
+      if(percent <= 79) {
+        console.log('-----\n')
+        console.log(color(msg))
+        console.log('\n-----')
+      }
+    } else {
+      console.log('-----\n')
+      console.log(color(msg))
+      console.log('\n-----')
+    }
+  })
+ }
 
 // --forget: removes the supplied repo from the list of assignments
 function forgetRepo() { console.log(`remove repo: ${repoName}`) }
