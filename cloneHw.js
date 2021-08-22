@@ -240,6 +240,11 @@ function createFinishedJson() {
 // --check: checks submissions in finished-assignments.json
 function checkSubmissions() { 
   const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+  // greater than or equal to this will appear yellow 
+  const yellowPercent = 85
+  // less than this will appear red
+  const redPercent = 80
+  // loop over each student and compare their completed with the assignments to calculate missing
   finishedJson.students.forEach(student => {
     const missing = []
     let missingString = ''
@@ -250,14 +255,14 @@ function checkSubmissions() {
       }
     })
     // calculate missing percentage
-    // print student name and missing assigments
     const percent = (finishedJson.assignments.length - missing.length) * 100 / finishedJson.assignments.length
-    const color = percent <= 79 ? error : 
-                  percent <= 85 ? warn  :
+    // print student name and missing assigments
+    const color = percent < redPercent ? error : 
+                  percent <= yellowPercent ? warn :
                   success 
     const msg = `${student.name}\n${missing.length} missed assignments:\n${missingString}\ncompletion rate: ${percent}%`
     if(flags.includes('--noGreen')) {
-      if(percent <= 79) {
+      if(percent < redPercent) {
         console.log('-----\n')
         console.log(color(msg))
         console.log('\n-----')
