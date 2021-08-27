@@ -346,11 +346,4 @@ function syncStudents() {
 	writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
 }
 
-// --updateAll: update all repos found in the missed assigments json
-function updateAllRepos() { 
-  const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
-  writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
-  console.log('sync students in config json to finished assignments') 
-}
-
 main()
