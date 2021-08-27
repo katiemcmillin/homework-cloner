@@ -193,8 +193,10 @@ async function cloneRepositories(submissions) {
 // print out which students didn't submit pull request submission
 function logMissingSubmissions(submissions) {
   if (submissions.length !== students.length) {
-    let githubUsernames = submissions.map(submission => submission.user.login) //array of github usernames that made submission
-    let difference = students.filter(student => !githubUsernames.includes(student.username))  //array of students that didnt make submission
+    let githubUsernames = submissions.map(submission => submission.user.login) 
+    //array of github usernames that made submission
+    //array of students that didnt make submission
+    let difference = students.filter(student => !githubUsernames.includes(student.username))  
     
     let names = "" 
     difference.forEach(student => (names += `${student.name} `)) 
@@ -213,10 +215,15 @@ function addNewAssigment() {
 
 // adds assignment and student submissions to json
 function updateFinishedAssignments(submissions) {
-  const githubUsernames = submissions.map(submission => submission.user.login) //array of github usernames that made submission
+  //array of github usernames that made submission
+  const githubUsernames = submissions.map(submission => submission.user.login) 
   const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
   finishedJson.students.forEach(student => {
-    if(githubUsernames.includes(student.username)) student.completed.push(repoName)
+    // only add if a submission is found
+    if(githubUsernames.includes(student.username)){
+      // do not add duplicates
+      if(!student.completed.includes(repoName)) student.completed.push(repoName)
+    } 
   })
   writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
 }
@@ -279,23 +286,27 @@ function checkSubmissions() {
 // --forget: removes the supplied repo from the list of assignments
 function forgetRepo() { 
   const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
-  const index = finishedJson.assignments.indexOf(repoName)
-  // return early if the repo isn't found
-  if(index < 0) {
-    console.log(error('repo'), info(repoName), error('not currently being tracked'))
-    console.log(info('exiting...'))
-    process.exit()
-    
-  }
+  // remove all references to the unwanted assignment
+  finishedJson.assignments = finishedJson.assignments.filter(assignment => assignment !== repoName)
+  finishedJson.students.map(student => {
+    console.log(student)
+    return {
+      ...student,
+      completed: student.completed.filter(assignment =>  assignment !== repoName)
+    }
+  })
   // write the json and remove the directory
-  finishedJson.assignments = finishedJson.assignments.splice(index, 1)
   writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
   spawn(`rm -rf ${repoName}`, { shell: true }) 
   console.log(success('removed repo:'), info(repoName), success('from bering tracked'))
 }
 
 // --list: print out all tracked assignments
-function listAssignments() { console.log('list all assignments') }
+function listAssignments() { 
+  const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+  console.log(info('currently tracking:'))
+  finishedJson.assignments.forEach(assignment => console.log(assignment))
+}
 
 // --sync: looks at the config.json and adds any new students to the finished assignments json
 function syncStudents() { console.log('sync students in config json to finished assignments') }
