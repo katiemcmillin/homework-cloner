@@ -54,15 +54,24 @@ function main() {
 
 async function cloneHw() {
   let pullRequests = await Promise.all(orgs.map(org => xhr(org)))
-  pullRequests = [].concat.apply([], pullRequests)  // Flatten array of arrays
-  pullRequests = pullRequests.filter(pr => pr.message != 'Not Found') // Strip empty PR, in the case of no PR from 2nd org
+  // Flatten array of arrays
+  pullRequests = [].concat.apply([], pullRequests)  
+  // Strip empty PR, in the case of no PR from 2nd org
+  pullRequests = pullRequests.filter(pr => pr.message != 'Not Found') 
 
   let studentSubmissions = [] 
   studentSubmissions = getStudentsPullRequests(pullRequests) 
   await cloneRepositories(studentSubmissions)
+  // only update finished assignments if the --noTrack flag isn't found
+  if(!flags.includes('--noTrack')) {
+    console.log(info('tracking submissions!'))
+    addNewAssigment()
+    updateFinishedAssignments(studentSubmissions)
+  } else {
+    console.log(info('not tracking these submissions!'))
+    
+  }
   logMissingSubmissions(studentSubmissions) 
-  addNewAssigment()
-  updateFinishedAssignments(studentSubmissions)
 }
 
 // make xhr request
@@ -248,7 +257,7 @@ function createFinishedJson() {
 // --check: checks submissions in finished-assignments.json
 function checkSubmissions() { 
   const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
-  // greater than or equal to this will appear yellow 
+  // less than or equal to this will appear yellow 
   const yellowPercent = 85
   // less than this will appear red
   const redPercent = 80
@@ -286,10 +295,11 @@ function checkSubmissions() {
 // --forget: removes the supplied repo from the list of assignments
 function forgetRepo() { 
   const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+  // end early if assignment not tracked
+  if(!finishedJson.assignments.includes(repoName)) return console.log(error(`assignment`), info(repoName), error('not currently tracked'))
   // remove all references to the unwanted assignment
   finishedJson.assignments = finishedJson.assignments.filter(assignment => assignment !== repoName)
-  finishedJson.students.map(student => {
-    console.log(student)
+  finishedJson.students = finishedJson.students.map(student => {
     return {
       ...student,
       completed: student.completed.filter(assignment => assignment !== repoName)
@@ -298,7 +308,7 @@ function forgetRepo() {
   // write the json and remove the directory
   writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
   spawn(`rm -rf ${repoName}`, { shell: true }) 
-  console.log(success('removed repo:'), info(repoName), success('from bering tracked'))
+  console.log(success('removed assignment:'), info(repoName), success('from being tracked'))
 }
 
 // --list: print out all tracked assignments
