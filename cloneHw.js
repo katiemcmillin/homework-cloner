@@ -91,6 +91,8 @@ async function xhr(org) {
         body = JSON.parse(body) 
         if (body.message) {
           console.error(error(`Warning: No repository found for: ${org}/${repoName}`))
+          console.log(info('exiting...'))
+          process.exit()
         }
         resolve(body) 
       }) 
@@ -227,8 +229,7 @@ function createFinishedJson() {
       return { ...student, completed: [] }
     })
   }
-  const finishedJson = JSON.stringify(finishedObj)
-  writeFileSync('./finished-assingments.json', finishedJson)
+  writeFileSync('./finished-assingments.json', JSON.stringify(finishedObj))
 }
 
 /**
@@ -258,8 +259,8 @@ function checkSubmissions() {
     const percent = (finishedJson.assignments.length - missing.length) * 100 / finishedJson.assignments.length
     // print student name and missing assigments
     const color = percent < redPercent ? error : 
-                  percent <= yellowPercent ? warn :
-                  success 
+    percent <= yellowPercent ? warn :
+    success 
     const msg = `${student.name}\n${missing.length} missed assignments:\n${missingString}\ncompletion rate: ${percent}%`
     if(flags.includes('--noGreen')) {
       if(percent < redPercent) {
@@ -273,10 +274,25 @@ function checkSubmissions() {
       console.log('\n-----')
     }
   })
- }
+}
 
 // --forget: removes the supplied repo from the list of assignments
-function forgetRepo() { console.log(`remove repo: ${repoName}`) }
+function forgetRepo() { 
+  const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+  const index = finishedJson.assignments.indexOf(repoName)
+  // return early if the repo isn't found
+  if(index < 0) {
+    console.log(error('repo'), info(repoName), error('not currently being tracked'))
+    console.log(info('exiting...'))
+    process.exit()
+    
+  }
+  // write the json and remove the directory
+  finishedJson.assignments = finishedJson.assignments.splice(index, 1)
+  writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
+  spawn(`rm -rf ${repoName}`, { shell: true }) 
+  console.log(success('removed repo:'), info(repoName), success('from bering tracked'))
+}
 
 // --list: print out all tracked assignments
 function listAssignments() { console.log('list all assignments') }
