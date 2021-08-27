@@ -193,8 +193,8 @@ async function cloneRepositories(submissions) {
 // print out which students didn't submit pull request submission
 function logMissingSubmissions(submissions) {
   if (submissions.length !== students.length) {
-    let githubUsernames = submissions.map(submission => submission.user.login) 
     //array of github usernames that made submission
+    let githubUsernames = submissions.map(submission => submission.user.login) 
     //array of students that didnt make submission
     let difference = students.filter(student => !githubUsernames.includes(student.username))  
     
@@ -292,7 +292,7 @@ function forgetRepo() {
     console.log(student)
     return {
       ...student,
-      completed: student.completed.filter(assignment =>  assignment !== repoName)
+      completed: student.completed.filter(assignment => assignment !== repoName)
     }
   })
   // write the json and remove the directory
@@ -309,9 +309,48 @@ function listAssignments() {
 }
 
 // --sync: looks at the config.json and adds any new students to the finished assignments json
-function syncStudents() { console.log('sync students in config json to finished assignments') }
+function syncStudents() {
+	const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+	// find all the new students added to the config
+	const newStudents = students.filter(student => {
+    let isNew = true
+    finishedJson.students.forEach(finStudent => {
+      if(finStudent.name === student.name) isNew = false
+    })
+    return isNew
+  })
+  newStudents.forEach(newStudent => {
+    finishedJson.students.push({...newStudent, completed: []})
+    console.log(info(`added:`),newStudent.name)
+  })
+
+  // find all the students who have been taken out of the config and remove them
+	const dropStudents = finishedJson.students.filter(student => {
+    let isDrop = true
+    students.forEach(confStudent => {
+      if(confStudent.name === student.name) isDrop = false
+    })
+    return isDrop
+  })
+  // remove any students that may have dropped
+  dropStudents.forEach(dropStudent => {
+    finishedJson.students = finishedJson.students.filter(currentStudent =>{
+      if(dropStudent.name != currentStudent.name) {
+        return true
+      } else {
+        console.log(error('removing'), currentStudent.name)
+        return false
+      }
+    }) 
+  })
+	writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
+}
 
 // --updateAll: update all repos found in the missed assigments json
-function updateAllRepos() { console.log('sync students in config json to finished assignments') }
+function updateAllRepos() { 
+  const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+  writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
+  console.log('sync students in config json to finished assignments') 
+}
 
 main()
