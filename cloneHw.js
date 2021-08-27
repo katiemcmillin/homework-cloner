@@ -29,27 +29,29 @@ const repoName = process.argv[2]
 // match command flags that start with --
 const flags = process.argv.filter(argv => argv.match(/(?<!\w)--\w+/)) 
 
-// If no repo specified in cli args, end program
-if (!repoName) {
-  console.log(`${error('No arguments to evaluate!')}\nExiting...`) 
-  process.exit() 
-}
-
 function main() {
-  // check if the missign-assingments.json exists, if not, create it
-  if(!existsSync('./finished-assingments.json')) {
-    console.log(warn('./finished-assignments.json not found, creating it now...'))
-    createFinishedJson()
-  }
+	// If no repo specified in cli args, end program
+	if (!repoName) {
+		console.log(`${error('No arguments to evaluate!')}\nExiting...`)
+		process.exit()
+	}
 
-  // forego cloning if one of the following flags is found
-  if(flags.includes('--check')) return checkSubmissions()
-  if(flags.includes('--forget')) return forgetRepo()
-  if(flags.includes('--list')) return listAssignments()
-  if(flags.includes('--sync')) return syncStudents()
-  if(flags.includes('--updateAll')) return updateAllRepos()
+	// check if the finished-assignments.json exists, if not, create it
+	if (!existsSync('./finished-assingments.json')) {
+		console.log(
+			warn('./finished-assignments.json not found, creating it now...')
+		)
+		createFinishedJson()
+	}
 
-  return cloneHw()
+	// forego cloning if one of the following flags is found
+	if (flags.includes('--check')) return checkSubmissions()
+	if (flags.includes('--forget')) return forgetRepo()
+	if (flags.includes('--list')) return listAssignments()
+	if (flags.includes('--sync')) return syncStudents()
+	if (flags.includes('--updateAll')) return updateAll()
+
+	return cloneHw()
 }
 
 async function cloneHw() {
@@ -64,9 +66,9 @@ async function cloneHw() {
   await cloneRepositories(studentSubmissions)
   // only update finished assignments if the --noTrack flag isn't found
   if(!flags.includes('--noTrack')) {
-    console.log(info('tracking submissions!'))
     addNewAssigment()
     updateFinishedAssignments(studentSubmissions)
+    console.log(info(`Tracking submissions!`))
   } else {
     console.log(info('not tracking these submissions!'))
     
@@ -201,16 +203,21 @@ async function cloneRepositories(submissions) {
 
 // print out which students didn't submit pull request submission
 function logMissingSubmissions(submissions) {
-  if (submissions.length !== students.length) {
-    //array of github usernames that made submission
-    let githubUsernames = submissions.map(submission => submission.user.login) 
-    //array of students that didnt make submission
-    let difference = students.filter(student => !githubUsernames.includes(student.username))  
-    
-    let names = "" 
-    difference.forEach(student => (names += `${student.name} `)) 
-    console.log(error(`Missing submissions from: ${names}`)) 
-  }
+	// log missing students to update course tracker
+	const numColor = submissions.length < students.length ? error : success
+	console.log(numColor(`${submissions.length} of ${students.length}`), `added to finished-assingments.json.`)
+	if (submissions.length !== students.length) {
+		//array of github usernames that made submission
+		let githubUsernames = submissions.map((submission) => submission.user.login)
+		//array of students that didnt make submission
+		let difference = students.filter(
+			(student) => !githubUsernames.includes(student.username)
+		)
+
+		let names = ''
+		difference.forEach((student) => (names += `${student.name} `))
+		console.log(error(`Missing submissions from: ${names}`))
+	}
 }
 
 // adds new assignment to the finished assignments json (does not add if it is not new)
@@ -261,6 +268,8 @@ function checkSubmissions() {
   const yellowPercent = 85
   // less than this will appear red
   const redPercent = 80
+  // will print a message if --noGreen is flagged and there are none to print
+  let noWarns = true
   // loop over each student and compare their completed with the assignments to calculate missing
   finishedJson.students.forEach(student => {
     const missing = []
@@ -275,21 +284,25 @@ function checkSubmissions() {
     const percent = (finishedJson.assignments.length - missing.length) * 100 / finishedJson.assignments.length
     // print student name and missing assigments
     const color = percent < redPercent ? error : 
-    percent <= yellowPercent ? warn :
-    success 
+                  percent <= yellowPercent ? warn :
+                  success 
     const msg = `${student.name}\n${missing.length} missed assignments:\n${missingString}\ncompletion rate: ${percent}%`
     if(flags.includes('--noGreen')) {
-      if(percent < redPercent) {
+      if(percent < yellowPercent) {
+        noWarns = false
         console.log('-----\n')
         console.log(color(msg))
         console.log('\n-----')
       }
     } else {
+      noWarns = false
       console.log('-----\n')
       console.log(color(msg))
       console.log('\n-----')
     }
   })
+  // message if no warnings where found
+  if(noWarns) console.log(success('Only green students found!'))
 }
 
 // --forget: removes the supplied repo from the list of assignments
@@ -354,6 +367,18 @@ function syncStudents() {
     }) 
   })
 	writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
+}
+
+// TODO: --updateAll: loops over the array of finished assigments and reclones them all
+function updateAll() {
+  console.log('update and reclone and repos found by recloning')
+  // Promisify main() so it returns a promise and map an array of promises from the json
+  // idea 1: refactor so repoName and flags are scoped not global vars but to main() and based as args
+    // this might be a pain because all the functions rely on global variables 
+    // it might be easy to pass everything as args? 
+  // idea 2: make repoName and flags non constant variables (use let), create a stack and pop off
+  // repo names as promises fulfill, stopping when the stack is empty -- liking this idea
+  // idea 3: Promisfy spawn()? maybe have main return something? I dunno about this idea...
 }
 
 main()
