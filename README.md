@@ -16,39 +16,39 @@ Command Line Output:
 
 `node cloneHw.js <repo name>`
 
-clones down all pull requests and tracks the assignemnt, does not overwrite repos if they are found locally
+> clones down all pull requests and tracks the assignemnt, does not overwrite repos if they are found locally
 
 `node cloneHw.js <repo name> --overWrite`
 
-clones down all pull requests and tracks the assignemnt, overwrites repos if they are found locally
+> clones down all pull requests and tracks the assignemnt, overwrites repos if they are found locally
 
 `node cloneHw.js <repo name> --noTrack <--overWrite>`
 
-clones down all pull requests and does not track the assignemnt, `--overWrite` can optionally be used.
+> clones down all pull requests and does not track the assignemnt, `--overWrite` can optionally be used.
 
 `node cloneHw.js <repo name> --forget`
 
-removes the repo from being tracked and deletes the folder locally
+> removes the repo from being tracked and deletes the folder locally
 
 `node cloneHw.js --check` 
 
-checks all tracked assignemnts and the percentage turned in for each student and displays them in the terminal
+> checks all tracked assignemnts and the percentage turned in for each student and displays them in the terminal
 
 `node clonceHw.js --check --noGreen` 
 
-checks all tracked assignemnts and the percentage turned in for each student, only displays yellow and red studnents in the terminal
+> checks all tracked assignemnts and the percentage turned in for each student, only displays yellow and red studnents in the terminal
 
 `node clonceHw.js --list`
 
-lists the assignments currently tracked in the termianl
+> lists the assignments currently tracked in the termianl
 
 `node clonceHw.js --sync`
 
-checks for differences between the students in `config.json` and the students that are tracked and sycnronises them. If a student adds or drops the class, the `config.json` can be modified to update the hw cloner
+> checks for differences between the students in `config.json` and the students that are tracked and sycnronises them. If a student adds or drops the class, the `config.json` can be modified to update the hw cloner
 
 `node cloneHw.js --updateAll`
 
-this feature has not been implemented yet
+> this feature has not been implemented yet
 
 ### config.json:
 
