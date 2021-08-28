@@ -1,6 +1,8 @@
 # HwCloner
 
-## Script to automate pull request cloning
+Script to automate pull request cloning and track submitted assignments.
+
+hwCloner.js scrapes pull requests from a supllied repo name, and if the pull requests were made by students that are found in the `config.json`, they are pulled down and tracked in the `finished-assignments.json`.
 
 ### Example Usage:
 
@@ -8,11 +10,49 @@ To clone your student's pull requests from github.com/WDI-SEA/css-positioning:
 
 `node cloneHw.js css-positioning`
 
-### Command Line Output: 
+Command Line Output: 
 
 ![cli](https://i.imgur.com/iWJS5RI.png)
 
+`node cloneHw.js <repo name>`
+
+clones down all pull requests and tracks the assignemnt, does not overwrite repos if they are found locally
+
+`node cloneHw.js <repo name> --overWrite`
+
+clones down all pull requests and tracks the assignemnt, overwrites repos if they are found locally
+
+`node cloneHw.js <repo name> --noTrack <--overWrite>`
+
+clones down all pull requests and does not track the assignemnt, `--overWrite` can optionally be used.
+
+`node cloneHw.js <repo name> --forget`
+
+removes the repo from being tracked and deletes the folder locally
+
+`node cloneHw.js --check` 
+
+checks all tracked assignemnts and the percentage turned in for each student and displays them in the terminal
+
+`node clonceHw.js --check --noGreen` 
+
+checks all tracked assignemnts and the percentage turned in for each student, only displays yellow and red studnents in the terminal
+
+`node clonceHw.js --list`
+
+lists the assignments currently tracked in the termianl
+
+`node clonceHw.js --sync`
+
+checks for differences between the students in `config.json` and the students that are tracked and sycnronises them. If a student adds or drops the class, the `config.json` can be modified to update the hw cloner
+
+`node cloneHw.js --updateAll`
+
+this feature has not been implemented yet
+
 ### config.json:
+
+The `.config.json` contains the access tokens, api configuration, and an array of students to scrape from the github api
 
 `config.json` example:
 
