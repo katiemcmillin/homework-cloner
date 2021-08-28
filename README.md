@@ -2,7 +2,7 @@
 
 Script to automate pull request cloning and track submitted assignments.
 
-hwCloner.js scrapes pull requests from a supllied repo name, and if the pull requests were made by students that are found in the `config.json`, they are pulled down and tracked in the `finished-assignments.json`.
+hwCloner.js scrapes pull requests from a supplied repo name, and if the pull requests were made by students that are found in the `config.json`, they are pulled down and tracked in the `finished-assignments.json`.
 
 # Getting Started
 
@@ -45,15 +45,15 @@ Command Line Output:
 
 `node cloneHw.js <repo name>`
 
-> clones down all pull requests and tracks the assignemnt, does not overwrite repos if they are found locally
+> clones down all pull requests and tracks the assignment, does not overwrite repos if they are found locally
 
 `node cloneHw.js <repo name> --overWrite`
 
-> clones down all pull requests and tracks the assignemnt, overwrites repos if they are found locally
+> clones down all pull requests and tracks the assignment, overwrites repos if they are found locally
 
 `node cloneHw.js <repo name> --noTrack <--overWrite>`
 
-> clones down all pull requests and does not track the assignemnt, `--overWrite` can optionally be used.
+> clones down all pull requests and does not track the assignment, `--overWrite` can optionally be used.
 
 `node cloneHw.js <repo name> --forget`
 
@@ -61,19 +61,19 @@ Command Line Output:
 
 `node cloneHw.js --check` 
 
-> checks all tracked assignemnts and the percentage turned in for each student and displays them in the terminal
+> checks all tracked assignments and the percentage turned in for each student and displays them in the terminal
 
-`node clonceHw.js --check --noGreen` 
+`node cloneHw.js --check --noGreen` 
 
-> checks all tracked assignemnts and the percentage turned in for each student, only displays yellow and red studnents in the terminal
+> checks all tracked assignments and the percentage turned in for each student, only displays yellow and red students in the terminal
 
-`node clonceHw.js --list`
+`node cloneHw.js --list`
 
-> lists the assignments currently tracked in the termianl
+> lists the assignments currently tracked in the terminal
 
-`node clonceHw.js --sync`
+`node cloneHw.js --sync`
 
-> checks for differences between the students in `config.json` and the students that are tracked and sycnronises them. If a student adds or drops the class, the `config.json` can be modified to update the hw cloner
+> checks for differences between the students in `config.json` and the students that are tracked and synchronizes  them. If a student adds or drops the class, the `config.json` can be modified to update the hw cloner
 
 `node cloneHw.js --updateAll`
 
