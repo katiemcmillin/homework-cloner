@@ -4,7 +4,36 @@ Script to automate pull request cloning and track submitted assignments.
 
 hwCloner.js scrapes pull requests from a supllied repo name, and if the pull requests were made by students that are found in the `config.json`, they are pulled down and tracked in the `finished-assignments.json`.
 
-### Example Usage:
+# Getting Started
+
+### config.json:
+
+* `touch config.json` to create the .gitignored config file. 
+
+The `.config.json` contains the access tokens, api configuration, and an array of students to scrape from the github api
+
+`config.json` example:
+
+```json
+{ 
+  "hostname": "api.github.com",
+  "userName": "your-gh-username",
+  "githubToken": "your_gh_token",
+  "orgs": ["WDI-SEA"],
+  "students": [
+    { "name": "student-name", "username": "github-username" },
+    { "name": "student-name", "username": "github-username" }
+  ]
+}
+```
+
+Use hostname `"hostname": "api.github.com"` for www.github.com and `"hostname": "git.generalassemb.ly"` for github enterprise.
+
+The github token must be generated on your account by going to `settings > developer settings > personal access tokens`. Generate a new token with all scopes. 
+
+The orgs can be an array of orgs to check for example a class org and the upstream main campus org. 
+
+## Example Usage:
 
 To clone your student's pull requests from github.com/WDI-SEA/css-positioning:
 
@@ -50,31 +79,6 @@ Command Line Output:
 
 > this feature has not been implemented yet
 
-### config.json:
-
-The `.config.json` contains the access tokens, api configuration, and an array of students to scrape from the github api
-
-`config.json` example:
-
-```json
-{ 
-  "hostname": "api.github.com",
-  "userName": "your-gh-username",
-  "githubToken": "your_gh_token",
-  "orgs": ["WDI-SEA"],
-  "students": [
-    { "name": "student-name", "username": "github-username" },
-    { "name": "student-name", "username": "github-username" }
-  ]
-}
-```
-
-Use hostname `"hostname": "api.github.com"` for www.github.com and `"hostname": "git.generalassemb.ly"` for github enterprise.
-
-The github token must be generated on your account by going to `settings > developer settings > personal access tokens`. Generate a new token with all scopes. 
-
-The orgs can be an array of orgs to check for example a class org and the upstream main campus org. 
-
 ### Dependencies:
 
 Node
@@ -90,3 +94,4 @@ Node
 
 1. Tool now can pull from multiple Github organizations simultaneously
 2. Tool can now use either gh or gh enterprise
+3. Tool now tracks submitted assignments
