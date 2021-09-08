@@ -216,7 +216,7 @@ function logMissingSubmissions(submissions) {
 
 		let names = ''
 		difference.forEach((student) => (names += `${student.name} `))
-		console.log(error(`Missing submissions from: ${names}`))
+		console.log(error(`Missing submissions from: ${names}\n`))
 	}
 }
 
