@@ -58,6 +58,9 @@ async function cloneHw() {
   pullRequests = [].concat.apply([], pullRequests)  
   // Strip empty PR, in the case of no PR from 2nd org
   pullRequests = pullRequests.filter(pr => pr.message != 'Not Found') 
+  // pullRequests.forEach(pullRequest => {
+  //   console.log(pullRequest.number, pullRequest.user)
+  // })
 
   let studentSubmissions = [] 
   studentSubmissions = getStudentsPullRequests(pullRequests) 
@@ -79,7 +82,7 @@ async function xhr(org) {
   const apiUrl = hostname === "git.generalassemb.ly" ? "/api/v3/repos" : "/repos"
   const options = {
     hostname, // "git.generalassemb.ly" || "api.github.com"
-    path: `${apiUrl}/${org}/${repoName}/pulls`,
+    path: `${apiUrl}/${org}/${repoName}/pulls?per_page=100`,
     method: "GET",
     headers: {
       "User-Agent": userName,
