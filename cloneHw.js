@@ -71,7 +71,6 @@ async function cloneHw() {
     console.log(info(`Tracking submissions!`))
   } else {
     console.log(info('not tracking these submissions!'))
-    
   }
   logMissingSubmissions(studentSubmissions) 
 }
@@ -151,7 +150,7 @@ async function cloneRepositories(submissions) {
     if [ ! -d "$1" ] ;  then
       mkdir "$1" 
       echo "Cloning into '${repoName}/$1' from $3"
-      git clone -q git@github.com:$2.git $1 
+      git clone -q git@${hostname}:$2.git $1 
     else
       echo "$1: ${msg}"
     fi
@@ -173,7 +172,7 @@ async function cloneRepositories(submissions) {
       # clone down repo
       mkdir "$1" 
       echo "Cloning into '${repoName}/$1' from $3"
-      git clone -q git@github.com:$2.git $1 
+      git clone -q git@${hostname}:$2.git $1 
     }`
   }
   
@@ -210,13 +209,11 @@ function logMissingSubmissions(submissions) {
 		//array of github usernames that made submission
 		let githubUsernames = submissions.map((submission) => submission.user.login)
 		//array of students that didnt make submission
-		let difference = students.filter(
-			(student) => !githubUsernames.includes(student.username)
-		)
+		let difference = students.filter((student) => !githubUsernames.includes(student.username))
 
 		let names = ''
-		difference.forEach((student) => (names += `${student.name} `))
-		console.log(error(`Missing submissions from: ${names}\n`))
+		difference.forEach((student) => (names += `${student.name}\n`))
+		console.log(error(`Missing submissions from:\n${names}\n`))
 	}
 }
 
