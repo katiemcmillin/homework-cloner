@@ -95,3 +95,8 @@ Node
 1. Tool now can pull from multiple Github organizations simultaneously
 2. Tool can now use either gh or gh enterprise
 3. Tool now tracks submitted assignments
+
+### Know bugs
+
+* repos cannot have more that 100 prs
+* `--sync` will not update changed usernames
