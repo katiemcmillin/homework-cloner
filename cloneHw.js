@@ -38,9 +38,7 @@ function main() {
 
 	// check if the finished-assignments.json exists, if not, create it
 	if (!existsSync('./finished-assingments.json')) {
-		console.log(
-			warn('./finished-assignments.json not found, creating it now...')
-		)
+		console.log(warn('./finished-assignments.json not found, creating it now...'))
 		createFinishedJson()
 	}
 
@@ -193,7 +191,7 @@ async function cloneRepositories(submissions) {
     console.log(data.toString().trim()) 
   }) 
   childProcess.stderr.on("data", data => {
-    console.error(data.toString().trim()) 
+    console.error(error(data.toString().trim())) 
   }) 
   const exitCode = await new Promise((resolve, reject) => {
     childProcess.on('close', resolve) 
