@@ -1,6 +1,5 @@
 const https = require("https") 
 const { spawn } = require("child_process") 
-const shell = require('shelljs')
 
 const { 
   existsSync, 
@@ -383,7 +382,14 @@ function updateAll() {
   assignments.forEach((assignment) => {
     let command = `node cloneHw.js ${assignment}`
     filteredFlags.forEach(flag =>  command += ` ${flag}`)
-    shell.exec(command)
+    const childProcess = spawn(command, { shell: true }) 
+
+    childProcess.stdout.on("data", data => {
+      console.log(data.toString().trim()) 
+    }) 
+    childProcess.stderr.on("data", data => {
+      console.error(error(data.toString().trim())) 
+    }) 
   })
 
   // Promisify main() so it returns a promise and map an array of promises from the json
