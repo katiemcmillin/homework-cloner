@@ -1,5 +1,6 @@
 const https = require("https") 
 const { spawn } = require("child_process") 
+const shell = require('shelljs')
 
 const { 
   existsSync, 
@@ -275,11 +276,13 @@ function checkSubmissions() {
     finishedJson.assignments.forEach(assignment => {
       if(!student.completed.includes(assignment)) {
         missing.push(assignment)
-        missingString += `${assignment} `
+        // FIXME: If used with more than one organization, works well for seir-flex-831
+        const organization = orgs[0]
+        missingString += `https://${hostname}/${organization}/${assignment}\n`
       }
     })
     // calculate missing percentage
-    const percent = (finishedJson.assignments.length - missing.length) * 100 / finishedJson.assignments.length
+    const percent = Math.round((finishedJson.assignments.length - missing.length) * 100 / finishedJson.assignments.length)
     // print student name and missing assigments
     const color = percent < redPercent ? error : 
                   percent <= yellowPercent ? warn :
@@ -366,10 +369,18 @@ function syncStudents() {
   })
 	writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
 }
-
+	
 // TODO: --updateAll: loops over the array of finished assigments and reclones them all
 function updateAll() {
   console.log('update and reclone and repos found by recloning')
+  if (!existsSync('./finished-assingments.json')) {
+		console.log(
+			warn('./finished-assignments.json not found. Make sure to clone a homework first.')
+		)
+	}
+  const { assignments } = JSON.parse(readFileSync('finished-assingments.json'))
+  assignments.forEach((assignment) => shell.exec(`node cloneHw.js ${assignment}`))
+
   // Promisify main() so it returns a promise and map an array of promises from the json
   // idea 1: refactor so repoName and flags are scoped not global vars but to main() and based as args
     // this might be a pain because all the functions rely on global variables 
