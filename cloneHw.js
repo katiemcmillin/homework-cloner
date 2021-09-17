@@ -379,7 +379,14 @@ function updateAll() {
 		)
 	}
   const { assignments } = JSON.parse(readFileSync('finished-assingments.json'))
-  assignments.forEach((assignment) => shell.exec(`node cloneHw.js ${assignment}`))
+  // remove overwrite flag to avoid infinite loop
+  const filteredFlags = flags.filter(flag => flag === '--overWrite')
+  // build command from flags and execute it
+  assignments.forEach((assignment) => {
+    let command = `node cloneHw.js ${assignment}`
+    filteredFlags.forEach(flag =>  command += ` ${flag}`)
+    shell.exec(command)
+  })
 
   // Promisify main() so it returns a promise and map an array of promises from the json
   // idea 1: refactor so repoName and flags are scoped not global vars but to main() and based as args
