@@ -75,9 +75,9 @@ Command Line Output:
 
 > checks for differences between the students in `config.json` and the students that are tracked and synchronizes  them. If a student adds or drops the class, the `config.json` can be modified to update the hw cloner
 
-`node cloneHw.js --updateAll`
+`node cloneHw.js --updateAll < --overWrite >`
 
-> this feature has not been implemented yet
+> checks in the `finished-assingments.json` for all tracked assignments and clones them all down. Works with all flags that modify cloning behavior such as `--overWrite`. 
 
 ### Dependencies:
 
