@@ -374,9 +374,7 @@ function syncStudents() {
 function updateAll() {
   console.log('update and reclone and repos found by recloning')
   if (!existsSync('./finished-assingments.json')) {
-		console.log(
-			warn('./finished-assignments.json not found. Make sure to clone a homework first.')
-		)
+		console.log(warn('./finished-assignments.json not found. Make sure to clone a homework first.'))
 	}
   const { assignments } = JSON.parse(readFileSync('finished-assingments.json'))
   // remove overwrite flag to avoid infinite loop
