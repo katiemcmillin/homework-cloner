@@ -69,9 +69,9 @@ async function cloneHw() {
   if(!flags.includes('--noTrack')) {
     addNewAssigment()
     updateFinishedAssignments(studentSubmissions)
-    console.log(info(`Tracking submissions!`))
+    console.log(info(`Tracking submissions for ${repoName}!`))
   } else {
-    console.log(info('not tracking these submissions!'))
+    console.log(info(`Not tracking the submissions! for ${repoName}`))
   }
   logMissingSubmissions(studentSubmissions) 
 }
@@ -371,7 +371,7 @@ function syncStudents() {
 	
 // TODO: --updateAll: loops over the array of finished assigments and reclones them all
 function updateAll() {
-  console.log('update and reclone and repos found by recloning')
+  console.log(info('Updating all repos found in the ./finished-assignments.json'))
   if (!existsSync('./finished-assingments.json')) {
 		console.log(warn('./finished-assignments.json not found. Make sure to clone a homework first.'))
 	}
