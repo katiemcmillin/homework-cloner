@@ -10,7 +10,7 @@ hwCloner.js scrapes pull requests from a supplied repo name, and if the pull req
 
 * `touch config.json` to create the .gitignored config file. 
 
-The `.config.json` contains the access tokens, api configuration, and an array of students to scrape from the github api
+The `config.json` contains the access tokens, api configuration, and an array of students to scrape from the github api
 
 `config.json` example:
 
