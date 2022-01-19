@@ -1,4 +1,5 @@
 const https = require("https") 
+const readLine = require('readline')
 const { spawn } = require("child_process") 
 
 const { 
@@ -76,6 +77,38 @@ async function cloneHw() {
   logMissingSubmissions(studentSubmissions) 
 }
 
+// wait for user input -- user input is returned and made lowercase with the boolean
+function prompt(query, lowerCase = false) {
+  const rl = readLine.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  })
+
+  return new Promise(resolve => rl.question(query, ans => {
+    rl.close();
+    if (lowerCase) ans = ans.toLocaleLowerCase()
+    resolve(ans);
+  }))
+}
+
+// a funciton that asks the user if they would like to exit of not
+const affirmative = ['y', 'yes']
+const negative = ['n', 'no']
+
+async function quitOrContinue() {
+  const cont = await prompt(warn('Would you like to continue anyway? (y/n)\n>', true))
+  if (affirmative.includes(cont)) {
+    console.log(info('continuing...'))
+    return true
+  }
+  if (negative.includes(cont)) {
+    console.log(info('exiting...'))
+    return process.exit()
+  }
+  console.log(error('I did not understand that, please answer y/n.'))
+  return quitOrContinue()
+}
+
 // make xhr request
 async function xhr(org) {
   // the enterprise api url is different grrr....
@@ -98,12 +131,11 @@ async function xhr(org) {
       res.on("data", data => {
         body += data 
       }) 
-      res.on("end", () => {
+      res.on("end", async () => {
         body = JSON.parse(body) 
         if (body.message) {
           console.error(error(`Warning: No repository found for: ${org}/${repoName}`))
-          console.log(info('exiting...'))
-          process.exit()
+          await quitOrContinue()
         }
         resolve(body) 
       }) 
