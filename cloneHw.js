@@ -24,13 +24,13 @@ const {
   success
 } = require('./colors.js')
 
-// the repo name should be the first arg to the script
-const repoName = process.argv[2] 
-
 // match command flags that start with --
 const flags = process.argv.filter(argv => argv.match(/(?<!\w)--\w+/)) 
+// to check if an org has the repo
+const orgChecks = orgs
 
-function main() {
+// the repo name should be the first arg to the script
+async function main(repoName = process.argv[2]) {
 	// If no repo specified in cli args, end program
 	if (!repoName) {
 		console.log(`${error('No arguments to evaluate!')}\nExiting...`)
@@ -45,16 +45,16 @@ function main() {
 
 	// forego cloning if one of the following flags is found
 	if (flags.includes('--check')) return checkSubmissions()
-	if (flags.includes('--forget')) return forgetRepo()
+	if (flags.includes('--forget')) return forgetRepo(repoName)
 	if (flags.includes('--list')) return listAssignments()
 	if (flags.includes('--sync')) return syncStudents()
 	if (flags.includes('--updateAll')) return updateAll()
 
-	return cloneHw()
+	return cloneHw(repoName)
 }
 
-async function cloneHw() {
-  let pullRequests = await Promise.all(orgs.map(org => xhr(org)))
+async function cloneHw(repoName) {
+  let pullRequests = await Promise.all(orgs.map(org => xhr(org, repoName)))
   // Flatten array of arrays
   pullRequests = [].concat.apply([], pullRequests)  
   // Strip empty PR, in the case of no PR from 2nd org
@@ -65,16 +65,63 @@ async function cloneHw() {
 
   let studentSubmissions = [] 
   studentSubmissions = getStudentsPullRequests(pullRequests) 
-  await cloneRepositories(studentSubmissions)
+  await cloneRepositories(studentSubmissions, repoName)
   // only update finished assignments if the --noTrack flag isn't found
   if(!flags.includes('--noTrack')) {
-    addNewAssigment()
-    updateFinishedAssignments(studentSubmissions)
+    addNewAssigment(repoName)
+    updateFinishedAssignments(studentSubmissions, repoName)
     console.log(info(`Tracking submissions for ${repoName}!`))
   } else {
     console.log(info(`Not tracking the submissions! for ${repoName}`))
   }
   logMissingSubmissions(studentSubmissions) 
+}
+
+// make xhr request
+async function xhr(org, repoName) {
+  // the enterprise api url is different grrr....
+  const apiUrl = hostname === "git.generalassemb.ly" ? "/api/v3/repos" : "/repos"
+  const options = {
+    hostname, // "git.generalassemb.ly" || "api.github.com"
+    path: `${apiUrl}/${org}/${repoName}/pulls?per_page=100`,
+    method: "GET",
+    headers: {
+      "User-Agent": userName,
+      "Authorization": `token ${githubToken}`
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    https.get(options, res => {
+      res.setEncoding("utf8") 
+      let body = "" 
+    
+      res.on("data", data => {
+        body += data 
+      }) 
+      res.on("end", async () => {
+        body = JSON.parse(body) 
+        if (body.message) {
+          // if its not already been found to not have the repo
+          if (orgChecks[orgs.indexOf(org)]) {
+            console.error(error(`Warning: No repository found for: ${org}/${repoName}`))
+            orgChecks[orgs.indexOf(org)] = false
+          }
+
+          if (orgChecks.every(org => !org)) {
+            console.log(error(`Warning: None of the orgs have a repo named ${repoName}!`))
+            console.log(info('exiting...'))
+            process.exit()
+          }
+          // await quitOrContinue()
+        }
+        resolve(body) 
+      }) 
+      res.on("error", err => {
+        reject(new Error(error('Failed XHR, status code: '), res.statusCode))
+      }) 
+    }) 
+  })
 }
 
 // wait for user input -- user input is returned and made lowercase with the boolean
@@ -109,44 +156,6 @@ async function quitOrContinue() {
   return quitOrContinue()
 }
 
-// make xhr request
-async function xhr(org) {
-  // the enterprise api url is different grrr....
-  const apiUrl = hostname === "git.generalassemb.ly" ? "/api/v3/repos" : "/repos"
-  const options = {
-    hostname, // "git.generalassemb.ly" || "api.github.com"
-    path: `${apiUrl}/${org}/${repoName}/pulls?per_page=100`,
-    method: "GET",
-    headers: {
-      "User-Agent": userName,
-      "Authorization": `token ${githubToken}`
-    }
-  }
-
-  return new Promise((resolve, reject) => {
-    https.get(options, res => {
-      res.setEncoding("utf8") 
-      let body = "" 
-    
-      res.on("data", data => {
-        body += data 
-      }) 
-      res.on("end", async () => {
-        body = JSON.parse(body) 
-        if (body.message) {
-          console.error(error(`Warning: No repository found for: ${org}/${repoName}`))
-          await quitOrContinue()
-        }
-        resolve(body) 
-      }) 
-      res.on("error", err => {
-        reject(new Error(error('Failed XHR, status code: '), res.statusCode))
-      }) 
-    }) 
-  })
-}
-
-
 // find which students made submissions, and return that list as array
 function getStudentsPullRequests(pullRequests) {
   const submissions = [] 
@@ -173,7 +182,7 @@ function getStudentsPullRequests(pullRequests) {
 }
 
 // from the list, clone repositories
-async function cloneRepositories(submissions) {
+async function cloneRepositories(submissions, repoName) {
   // BASH scripting magic: If folder not present - mkdir and clone, else echo message
   // $1: studentName, $2: repoPath, $3: orgName
   // OG bash function that doesn't reclone when a folder is found
@@ -210,7 +219,7 @@ async function cloneRepositories(submissions) {
   }
   
   // mkdir if doesn't exist and cd
-  var cliCommand = `${bashFunction} && mkdir -p ${repoName} && cd ${repoName}`  
+  let cliCommand = `${bashFunction} && mkdir -p ${repoName} && cd ${repoName}`  
   submissions.forEach(submission => {
     let githubUsername = submission.user.login 
     let studentName = students.find(student => student.username == githubUsername).name 
@@ -251,7 +260,7 @@ function logMissingSubmissions(submissions) {
 }
 
 // adds new assignment to the finished assignments json (does not add if it is not new)
-function addNewAssigment() {
+function addNewAssigment(repoName) {
   const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
   if(!finishedJson.assignments.includes(repoName)) {
     finishedJson.assignments.push(repoName)
@@ -260,7 +269,7 @@ function addNewAssigment() {
 }
 
 // adds assignment and student submissions to json
-function updateFinishedAssignments(submissions) {
+function updateFinishedAssignments(submissions, repoName) {
   //array of github usernames that made submission
   const githubUsernames = submissions.map(submission => submission.user.login) 
   const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
@@ -338,7 +347,7 @@ function checkSubmissions() {
 }
 
 // --forget: removes the supplied repo from the list of assignments
-function forgetRepo() { 
+function forgetRepo(repoName) { 
   const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
   // end early if assignment not tracked
   if(!finishedJson.assignments.includes(repoName)) return console.log(error(`assignment`), info(repoName), error('not currently tracked'))
@@ -401,8 +410,17 @@ function syncStudents() {
 	writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
 }
 	
+function spawnAsync(command) {
+  return new Promise((resolve, reject) => {
+    const childProcess = spawn(command, { shell: true }) 
+    childProcess.stdout.on('data', data => console.log(data.toString().trim())) 
+    childProcess.stderr.on('data', data => reject(error(data.toString().trim()))) 
+    childProcess.on('close', code => resolve(code))
+  })
+}
+
 // TODO: --updateAll: loops over the array of finished assigments and reclones them all
-function updateAll() {
+async function updateAll() {
   console.log(info('Updating all repos found in the ./finished-assignments.json'))
   if (!existsSync('./finished-assingments.json')) {
 		console.log(warn('./finished-assignments.json not found. Make sure to clone a homework first.'))
@@ -411,18 +429,23 @@ function updateAll() {
   // remove overwrite flag to avoid infinite loop
   const filteredFlags = flags.filter(flag => flag === '--overWrite')
   // build command from flags and execute it
-  assignments.forEach((assignment) => {
+  const updateCommands = assignments.map((assignment) => {
     let command = `node cloneHw.js ${assignment}`
     filteredFlags.forEach(flag =>  command += ` ${flag}`)
-    const childProcess = spawn(command, { shell: true }) 
-
-    childProcess.stdout.on("data", data => {
-      console.log(data.toString().trim()) 
-    }) 
-    childProcess.stderr.on("data", data => {
-      console.error(error(data.toString().trim())) 
-    }) 
+    return command
   })
+
+  let i = 0
+  while (i < updateCommands.length) {
+    console.log(info(`${i} of ${assignments.length - 1} repos updated: ${Math.round((i / assignments.length) * 100)}% complete.`))
+    console.log(info(`Updating ${assignments[i]}.`))
+    try {
+      await spawnAsync(updateCommands[i])
+    } catch (err) {
+      console.log(err)
+    }
+    i++
+  }
 
   // Promisify main() so it returns a promise and map an array of promises from the json
   // idea 1: refactor so repoName and flags are scoped not global vars but to main() and based as args
