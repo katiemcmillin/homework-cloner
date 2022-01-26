@@ -29,7 +29,7 @@ The `config.json` contains the access tokens, api configuration, and an array of
 
 Use hostname `"hostname": "api.github.com"` for www.github.com and `"hostname": "git.generalassemb.ly"` for github enterprise.
 
-The github token must be generated on your account by going to `settings > developer settings > personal access tokens`. Generate a new token with all scopes. [This link](https://github.com/settings/tokens) is where you can generate a token for open source github and [this link](https://git.generalassemb.ly/settings/tokens) to generate a token for enterprise github.
+The github token must be generated on your account by going to `settings > developer settings > personal access tokens`. Generate a new token with all scopes. [This link](https://github.com/settings/tokens/new) is where you can generate a token for open source github and [this link](https://git.generalassemb.ly/settings/tokens) to generate a token for enterprise github.
 
 The orgs can be an array of orgs to check for example a class org and the upstream main campus org. 
 
