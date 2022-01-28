@@ -86,7 +86,8 @@ async function xhr(org, repoName) {
     path: `${apiUrl}/${org}/${repoName}/pulls?per_page=100`,
     method: "GET",
     headers: {
-      "User-Agent": userName,
+      "User-Agent": 'request',
+      // "access_token": `${githubToken}`
       "Authorization": `token ${githubToken}`
     }
   }
@@ -102,8 +103,10 @@ async function xhr(org, repoName) {
       res.on("end", async () => {
         body = JSON.parse(body) 
         if (body.message) {
+          console.log(error(body.message))
           // if its not already been found to not have the repo
           if (orgChecks[orgs.indexOf(org)]) {
+          
             console.error(error(`Warning: No repository found for: ${org}/${repoName}`))
             orgChecks[orgs.indexOf(org)] = false
           }
@@ -187,12 +190,14 @@ async function cloneRepositories(submissions, repoName) {
   // $1: studentName, $2: repoPath, $3: orgName
   // OG bash function that doesn't reclone when a folder is found
   let msg = warn('directory already on drive')
+  const clonePath = hostname === 'api.github.com' ? 'github.com' : hostname
   let bashFunction = 
   `hw() { 
     if [ ! -d "$1" ] ;  then
       mkdir "$1" 
       echo "Cloning into '${repoName}/$1' from $3"
-      git clone -q git@${hostname}:$2.git $1 
+      git clone -q git@${clonePath}:$2.git $1 
+      echo https://${hostname}/$2.git $1 
     else
       echo "$1: ${msg}"
     fi
@@ -214,7 +219,7 @@ async function cloneRepositories(submissions, repoName) {
       # clone down repo
       mkdir "$1" 
       echo "Cloning into '${repoName}/$1' from $3"
-      git clone -q git@${hostname}:$2.git $1 
+      git clone -q git@${clonePath}:$2.git $1 
     }`
   }
   
