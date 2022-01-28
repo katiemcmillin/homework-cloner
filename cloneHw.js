@@ -209,7 +209,6 @@ async function cloneRepositories(submissions, repoName) {
       mkdir "$1" 
       echo "Cloning into '${repoName}/$1' from $3"
       git clone -q git@${clonePath}:$2.git $1 
-      echo https://${hostname}/$2.git $1 
     else
       echo "$1: ${msg}"
     fi
