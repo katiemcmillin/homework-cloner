@@ -16,13 +16,26 @@ const {
   orgs 
 } = require("./config.json") 
 
+// color escape codes
+const colors = {
+  reset: "\033[0m",
+  fgRed: "\033[31m",
+  fgYellow: "\033[33m",
+  fgGreen: "\033[32m",
+  fgBlue: "\033[34m",
+  error: str => `${colors.fgRed}${str}${colors.reset}`,
+  warn: str => `${colors.fgYellow}${str}${colors.reset}`,
+  success: str => `${colors.fgGreen}${str}${colors.reset}`,
+  info: str => `${colors.fgBlue}${str}${colors.reset}`,
+}
+
 // functions for console colors
 const {
   error,
   warn,
   info,
   success
-} = require('./colors.js')
+} = colors
 
 // match command flags that start with --
 const flags = process.argv.filter(argv => argv.match(/(?<!\w)--\w+/)) 
@@ -86,8 +99,7 @@ async function xhr(org, repoName) {
     path: `${apiUrl}/${org}/${repoName}/pulls?per_page=100`,
     method: "GET",
     headers: {
-      "User-Agent": 'request',
-      // "access_token": `${githubToken}`
+      "User-Agent": userName,
       "Authorization": `token ${githubToken}`
     }
   }
@@ -299,6 +311,16 @@ function createFinishedJson() {
   writeFileSync('./finished-assingments.json', JSON.stringify(finishedObj))
 }
 
+// promisify the spawn untility
+function spawnAsync(command) {
+  return new Promise((resolve, reject) => {
+    const childProcess = spawn(command, { shell: true }) 
+    childProcess.stdout.on('data', data => console.log(data.toString().trim())) 
+    childProcess.stderr.on('data', data => reject(error(data.toString().trim()))) 
+    childProcess.on('close', code => resolve(code))
+  })
+}
+
 /**
  * Flag Functions: 
  * these are invoked instead of cloneHw if the corresponding flag in present 
@@ -414,17 +436,8 @@ function syncStudents() {
   })
 	writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
 }
-	
-function spawnAsync(command) {
-  return new Promise((resolve, reject) => {
-    const childProcess = spawn(command, { shell: true }) 
-    childProcess.stdout.on('data', data => console.log(data.toString().trim())) 
-    childProcess.stderr.on('data', data => reject(error(data.toString().trim()))) 
-    childProcess.on('close', code => resolve(code))
-  })
-}
 
-// TODO: --updateAll: loops over the array of finished assigments and reclones them all
+// --updateAll: loops over the array of finished assigments and reclones them all
 async function updateAll() {
   console.log(info('Updating all repos found in the ./finished-assignments.json'))
   if (!existsSync('./finished-assingments.json')) {
@@ -442,7 +455,7 @@ async function updateAll() {
 
   let i = 0
   while (i < updateCommands.length) {
-    console.log(info(`${i} of ${assignments.length - 1} repos updated: ${Math.round((i / assignments.length) * 100)}% complete.`))
+    console.log(info(`${i} of ${assignments.length} repos updated: ${Math.round((i / assignments.length) * 100)}% complete.`))
     console.log(info(`Updating ${assignments[i]}.`))
     try {
       await spawnAsync(updateCommands[i])
@@ -451,14 +464,6 @@ async function updateAll() {
     }
     i++
   }
-
-  // Promisify main() so it returns a promise and map an array of promises from the json
-  // idea 1: refactor so repoName and flags are scoped not global vars but to main() and based as args
-    // this might be a pain because all the functions rely on global variables 
-    // it might be easy to pass everything as args? 
-  // idea 2: make repoName and flags non constant variables (use let), create a stack and pop off
-  // repo names as promises fulfill, stopping when the stack is empty -- liking this idea
-  // idea 3: Promisfy spawn()? maybe have main return something? I dunno about this idea...
 }
 
 main()
