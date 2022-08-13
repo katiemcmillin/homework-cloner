@@ -344,7 +344,7 @@ function checkSubmissions() {
         missing.push(assignment)
         // FIXME: If used with more than one organization, works well for seir-flex-831
         const organization = orgs[0]
-        missingString += `https://${hostname}/${organization}/${assignment}\n`
+        missingString += `github.com/${organization}/${assignment}\n`
       }
     })
     // calculate missing percentage
