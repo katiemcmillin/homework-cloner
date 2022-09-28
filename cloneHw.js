@@ -62,6 +62,7 @@ async function main(repoName = process.argv[2]) {
 	if (flags.includes('--list')) return listAssignments()
 	if (flags.includes('--sync')) return syncStudents()
 	if (flags.includes('--updateAll')) return updateAll()
+  if (flags.includes('--allCompleted')) return allCompleted(repoName)
 
 	return cloneHw(repoName)
 }
@@ -463,6 +464,21 @@ async function updateAll() {
     }
     i++
   }
+}
+
+// --allCompleted: adds assignment to all students as completed
+function allCompleted(repoName) {
+  const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+
+
+  finishedJson.students.forEach(student => {
+      if (!student.completed.includes(repoName)) {
+          console.log(info(`adding ${repoName} as completed for ${student.name}`))
+          student.completed.push(repoName)
+      }
+  })
+
+  writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
 }
 
 main()
