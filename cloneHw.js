@@ -51,7 +51,7 @@ async function main(repoName = process.argv[2]) {
     }
 
     // check if the finished-assignments.json exists, if not, create it
-    if (!existsSync('./finished-assingments.json')) {
+    if (!existsSync('./finished-assignments.json')) {
         console.log(warn('./finished-assignments.json not found, creating it now...'))
         createFinishedJson()
     }
@@ -264,7 +264,7 @@ async function cloneRepositories(submissions, repoName) {
 function logMissingSubmissions(submissions) {
     // log missing students to update course tracker
     const numColor = submissions.length < students.length ? error : success
-    console.log(numColor(`${submissions.length} of ${students.length}`), `added to finished-assingments.json.`)
+    console.log(numColor(`${submissions.length} of ${students.length}`), `added to finished-assignments.json.`)
     if (submissions.length !== students.length) {
         //array of github usernames that made submission
         let githubUsernames = submissions.map((submission) => submission.user.login)
@@ -279,10 +279,10 @@ function logMissingSubmissions(submissions) {
 
 // adds new assignment to the finished assignments json (does not add if it is not new)
 function addNewAssigment(repoName) {
-    const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+    const finishedJson = JSON.parse(readFileSync('finished-assignments.json'))
     if (!finishedJson.assignments.includes(repoName)) {
         finishedJson.assignments.push(repoName)
-        writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
+        writeFileSync('./finished-assignments.json', JSON.stringify(finishedJson))
     }
 }
 
@@ -290,7 +290,7 @@ function addNewAssigment(repoName) {
 function updateFinishedAssignments(submissions, repoName) {
     //array of github usernames that made submission
     const githubUsernames = submissions.map(submission => submission.user.login)
-    const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+    const finishedJson = JSON.parse(readFileSync('finished-assignments.json'))
     finishedJson.students.forEach(student => {
         // only add if a submission is found
         if (githubUsernames.includes(student.username)) {
@@ -298,7 +298,7 @@ function updateFinishedAssignments(submissions, repoName) {
             if (!student.completed.includes(repoName)) student.completed.push(repoName)
         }
     })
-    writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
+    writeFileSync('./finished-assignments.json', JSON.stringify(finishedJson))
 }
 
 // creates the json that tracks turned in deliverbles
@@ -309,7 +309,7 @@ function createFinishedJson() {
             return { ...student, completed: [] }
         })
     }
-    writeFileSync('./finished-assingments.json', JSON.stringify(finishedObj))
+    writeFileSync('./finished-assignments.json', JSON.stringify(finishedObj))
 }
 
 // promisify the spawn untility
@@ -330,7 +330,7 @@ function spawnAsync(command) {
 
 // --check: checks submissions in finished-assignments.json
 function checkSubmissions() {
-    const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+    const finishedJson = JSON.parse(readFileSync('finished-assignments.json'))
     // less than or equal to this will appear yellow 
     const yellowPercent = 85
     // less than this will appear red
@@ -376,7 +376,7 @@ function checkSubmissions() {
 
 // --forget: removes the supplied repo from the list of assignments
 function forgetRepo(repoName) {
-    const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+    const finishedJson = JSON.parse(readFileSync('finished-assignments.json'))
     // end early if assignment not tracked
     if (!finishedJson.assignments.includes(repoName)) return console.log(error(`assignment`), info(repoName), error('not currently tracked'))
     // remove all references to the unwanted assignment
@@ -388,21 +388,21 @@ function forgetRepo(repoName) {
         }
     })
     // write the json and remove the directory
-    writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
+    writeFileSync('./finished-assignments.json', JSON.stringify(finishedJson))
     spawn(`rm -rf ${repoName}`, { shell: true })
     console.log(success('removed assignment:'), info(repoName), success('from being tracked'))
 }
 
 // --list: print out all tracked assignments
 function listAssignments() {
-    const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+    const finishedJson = JSON.parse(readFileSync('finished-assignments.json'))
     console.log(info('currently tracking:'))
     finishedJson.assignments.forEach(assignment => console.log(assignment))
 }
 
 // --sync: looks at the config.json and adds any new students to the finished assignments json
 function syncStudents() {
-    const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+    const finishedJson = JSON.parse(readFileSync('finished-assignments.json'))
     // find all the new students added to the config
     const newStudents = students.filter(student => {
         let isNew = true
@@ -435,16 +435,16 @@ function syncStudents() {
             }
         })
     })
-    writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
+    writeFileSync('./finished-assignments.json', JSON.stringify(finishedJson))
 }
 
 // --updateAll: loops over the array of finished assigments and reclones them all
 async function updateAll() {
     console.log(info('Updating all repos found in the ./finished-assignments.json'))
-    if (!existsSync('./finished-assingments.json')) {
+    if (!existsSync('./finished-assignments.json')) {
         console.log(warn('./finished-assignments.json not found. Make sure to clone a homework first.'))
     }
-    const { assignments } = JSON.parse(readFileSync('finished-assingments.json'))
+    const { assignments } = JSON.parse(readFileSync('finished-assignments.json'))
     // remove overwrite flag to avoid infinite loop
     const filteredFlags = flags.filter(flag => flag === '--overWrite')
     // build command from flags and execute it
@@ -469,7 +469,7 @@ async function updateAll() {
 
 // --complete: adds assignment to student as completed
 function completed(repoName, studentName) {
-    const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+    const finishedJson = JSON.parse(readFileSync('finished-assignments.json'))
 
     // make sure it is a valid student name, and find their index in the array
     let studentIndex = -1
@@ -501,12 +501,12 @@ function completed(repoName, studentName) {
         finishedJson.students[studentIndex].completed.push(repoName)
     }
 
-    writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
+    writeFileSync('./finished-assignments.json', JSON.stringify(finishedJson))
 }
 
 // --allCompleted: adds assignment to all students as completed
 function allCompleted(repoName) {
-    const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+    const finishedJson = JSON.parse(readFileSync('finished-assignments.json'))
 
     // check if assignment is tracked, if not, add it
     if (!finishedJson.assignments.includes(repoName)) {
@@ -522,7 +522,7 @@ function allCompleted(repoName) {
         }
     })
 
-    writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
+    writeFileSync('./finished-assignments.json', JSON.stringify(finishedJson))
 }
 
 main()
