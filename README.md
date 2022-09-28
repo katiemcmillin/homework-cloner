@@ -79,9 +79,13 @@ Command Line Output:
 
 > checks in the `finished-assignments.json` for all tracked assignments and clones them all down. Works with all flags that modify cloning behavior such as `--overWrite`. 
 
+`node cloneHw.js < repoName > < student name > --completed`
+
+> marks `< repoName >` as completed for `< student name >`, adds assignment to tracked assignemnts
+
 `node cloneHw.js < repoName > --allCompleted`
 
-> marks `< repoName >` as completed for all students
+> marks `< repoName >` as completed for all students, adds assignment to tracked assignemnts
 
 ### Dependencies:
 

@@ -62,6 +62,7 @@ async function main(repoName = process.argv[2]) {
 	if (flags.includes('--list')) return listAssignments()
 	if (flags.includes('--sync')) return syncStudents()
 	if (flags.includes('--updateAll')) return updateAll()
+  if (flags.includes('--completed')) return completed(repoName, process.argv[3])
   if (flags.includes('--allCompleted')) return allCompleted(repoName)
 
 	return cloneHw(repoName)
@@ -466,11 +467,54 @@ async function updateAll() {
   }
 }
 
+// --complete: adds assignment to student as completed
+function completed(repoName, studentName) {
+  const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
+
+  // make sure it is a valid student name, and find their index in the array
+  let studentIndex = -1
+  for (let i = 0; i < finishedJson.students.length; i++) {
+    if (finishedJson.students[i].name === studentName) {
+      studentIndex = i
+      break
+    }
+  }
+
+  // quit if the student was not found
+  if (studentIndex === -1) {
+    console.log(error(`no student found with name '${studentName}'`))
+    console.log(warn(`example usage: node cloneHw.js < repo name > < student name > --completed\n(Make sure to include the dash in the student's name. eg: First-Last)`))
+    console.log(info('exiting...'))
+  }
+
+  // add assignment as tracked if it is not already
+  if (!finishedJson.assignments.includes(repoName)) {
+    console.log(info(`Tracking submissions for ${repoName}!`))
+    finishedJson.assignments.push(repoName)
+  }
+
+  // check if the student has turned in the assingment, if not, add it
+  if (finishedJson.students[studentIndex].completed.includes(repoName)) {
+    console.log(info(`${repoName} is already marked completed for ${finishedJson.students[studentIndex].name}`))
+  } else {
+    console.log(info(`adding ${repoName} as completed for ${finishedJson.students[studentIndex].name}`))
+    finishedJson.students[studentIndex].completed.push(repoName)
+  }
+
+  writeFileSync('./finished-assingments.json', JSON.stringify(finishedJson))
+}
+
 // --allCompleted: adds assignment to all students as completed
 function allCompleted(repoName) {
   const finishedJson = JSON.parse(readFileSync('finished-assingments.json'))
 
+  // check if assignment is tracked, if not, add it
+  if (!finishedJson.assignments.includes(repoName)) {
+    console.log(info(`Tracking submissions for ${repoName}!`))
+    finishedJson.assignments.push(repoName)
+  }
 
+  // add assignment to each student
   finishedJson.students.forEach(student => {
       if (!student.completed.includes(repoName)) {
           console.log(info(`adding ${repoName} as completed for ${student.name}`))
