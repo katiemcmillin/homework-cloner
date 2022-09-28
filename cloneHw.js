@@ -411,6 +411,7 @@ function syncStudents() {
         })
         return isNew
     })
+
     newStudents.forEach(newStudent => {
         finishedJson.students.push({ ...newStudent, completed: [] })
         console.log(info(`added:`), newStudent.name)
@@ -434,6 +435,21 @@ function syncStudents() {
                 return false
             }
         })
+    })
+    // find folks with new usernames
+    students.forEach(student => {
+        // find student in finshed json
+        for (let i = 0; i < finishedJson.students.length; i++) {
+            if (finishedJson.students[i].name === student.name) {
+                // check if there is a username change
+                if (finishedJson.students[i].username !== student.username) {
+                    console.log(info(`updating ${student.name}'s username to be ${student.username} in the finished-assignments.json`))
+                    // update the finished assignments json based on what was found in config.json
+                    finishedJson.students[i].username = student.username
+                }
+                break
+            }
+        }
     })
     writeFileSync('./finished-assignments.json', JSON.stringify(finishedJson))
 }
